@@ -1,294 +1,158 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sindh Weather Forecast Table</title>
 <style>
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f9; }
-  h2, h4 { color: #333; margin-bottom: 5px; }
-  
-  /* Input Section */
-  .control-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-  #synopBox { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 13px; box-sizing: border-box; }
-  
-  button { margin-top: 10px; padding: 10px 25px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
-  button:hover { background-color: #0056b3; }
-  button:disabled { background-color: #ccc; cursor: not-allowed; }
-  
-  #statusMsg { margin-left: 15px; font-weight: 600; color: #555; display: inline-block; }
-
-  /* Table Styling */
-  .table-container { overflow-x: auto; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
-  
-  th, td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #ddd; border-right: 1px solid #eee; }
-  th { background-color: #2c3e50; color: white; font-weight: 600; vertical-align: middle; }
-  
-  /* Alternate row colors */
-  tr:nth-child(even) { background-color: #f8f9fa; }
-  tr:hover { background-color: #e2e6ea; }
-
-  /* Specific Column Styling */
-  td:first-child { text-align: left; font-weight: bold; color: #2c3e50; } /* Station Name */
-  
-  /* Obs Columns Highlight */
-  .col-obs { background-color: #fff3cd !important; color: #856404; font-weight: bold; } /* Yellowish for Observed */
-  tr:nth-child(even) .col-obs { background-color: #ffeeba !important; }
-  
-  /* Header grouping colors */
-  th.group-temp { background-color: #e74c3c; } /* Red for Temp */
-  th.group-rh { background-color: #3498db; }   /* Blue for RH */
+body{font-family:Arial;background:#f4f6f9;padding:20px}
+textarea{width:100%;height:90px;margin:8px 0;font-family:monospace}
+button{padding:10px 18px}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:12px}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
+th{background:#1f4e78;color:#fff;position:sticky;top:0}
+.obs{background:#fff3cd;font-weight:bold}
+/* Soft colour groups for temperature and humidity columns */
+.tmax{background:#fff0df}
+.tmin{background:#e8f2ff}
+.rhobs{background:#e8f7ed}
+.rhfc{background:#f0f7df}
 </style>
-
- <script>
-    function openLink(url) {
-      window.open(url, "_blank"); // Opens link in a new tab
-    }
-  </script>
-  <button onclick="openLink('https://pmdnmcc.net/websites/DownloadNMCCData.aspx')">DownLoad NMCC DATA</button>
-  <button onclick="openLink('https://mokarachi.github.io/surface/')">Extract Surface Data</button>
-  <button onclick="openLink('https://mokarachi.github.io/temps/')">Extract Temps Data</button>
-  <button onclick="openLink('https://mokarachi.github.io/ptv/')">PTV Report</button>
-  <button onclick="openLink('https://mokarachi.github.io/fc/')">Forecast</button>
-  <button onclick="openLink('https://mokarachi.github.io/spd/')">SPD</button>
-  <button onclick="openLink('https://mokarachi.github.io/pnship/')">PNShip</button>
-  <button onclick="openLink('https://mokarachi.github.io/coastalbelt/')">Coastal Belt</button>
-  <button onclick="openLink('https://mokarachi.github.io/sigmet/')">SIGMET</button>
-
-
-
-
-
-
-
-
 </head>
 <body>
-
-<div class="control-panel">
-  <h2>Sindh Weather Forecast Table</h2>
-  <h4>Paste Yesterday's Synop Data (Section 333):</h4>
-  <textarea id="synopBox" placeholder="Example: 41780 333 10355 20255 ... RH50%"></textarea>
-  <br>
-  <button id="loadBtn" onclick="processSynopAndLoad()">Load Table</button>
-  <div id="statusMsg"></div>
-</div>
-
-<div class="table-container">
-  <table id="weatherTable">
-    <thead>
-      <tr>
-        <th rowspan="2" style="width:150px;">Station Name</th>
-        <th rowspan="2">Code</th>
-        <th class="group-temp" colspan="4">Temperature (°C)</th>
-        <th class="group-rh" colspan="4">Relative Humidity (%)</th>
-      </tr>
-      <tr>
-        <!-- Temp Subheaders -->
-        <th class="col-obs" style="color:#856404; background:#fff3cd;">Today (Obs)</th>
-        <th>Next 24h</th>
-        <th>Next 48h</th>
-        <th>Next 72h</th>
-        <!-- RH Subheaders -->
-        <th class="col-obs" style="color:#856404; background:#fff3cd;">Today (Obs)</th>
-        <th>Next 24h</th>
-        <th>Next 48h</th>
-        <th>Next 72h</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody">
-      <tr><td colspan="10" style="text-align:center; padding: 20px;">Waiting for data...</td></tr>
-    </tbody>
-  </table>
-</div>
-
+<h2>Sindh Weather Forecast Table</h2>
+<p>Paste Yesterday 1200Z SYNOP:</p><textarea id="synopBox"></textarea>
+<p>Paste Today 0300Z SYNOP:</p><textarea id="synop0300Box"></textarea>
+<p>Paste Today 0600Z SYNOP:</p><textarea id="synop0600Box"></textarea>
+<button onclick="loadTable()">Load Table</button>
+<table>
+<thead><tr>
+<th>Station</th><th>Code</th><th>YesderdayMAX</th><th>T@0600Z</th>
+<th>Tmax24</th><th>Tmax48</th><th>Tmax72</th><th>TMin@0300Z</th>
+<th>Tmin24</th><th>Tmin48</th><th>Tmin72</th>
+<th>Wind Dir24</th><th>Wind Dir48</th><th>Wind Dir72</th>
+<th>Wind Spd24</th><th>Wind Spd48</th><th>Wind Spd72</th>
+<th>RH@0300Z</th><th>RH24</th><th>RH48</th><th>RH72</th>
+<th>Forecast24</th><th>Forecast48</th><th>Forecast72</th>
+</tr></thead>
+<tbody id="tb"><tr><td colspan="24">Waiting...</td></tr></tbody>
+</table>
 <script>
-// --- Point Coordinates ---
-const points = [
-  { code: "41780", name: "Karachi", lat: 24.90232, lon: 67.1389922 },
-  { code: "41783", name: "Thatta", lat: 24.7538, lon: 67.897640 },
-//  { code: "41783", name: "Sajawal", lat: 24.59995, lon: 68.07489 },
-  { code: "41785", name: "Badin", lat: 24.6716, lon: 68.83393 },
-  { code: "41764", name: "Hyderabad", lat: 25.3766, lon: 68.3626444 },
-//  { code: "41764", name: "T.AllahYar", lat: 25.4170, lon: 68.71928 },
-//  { code: "41764", name: "T.M.Khan", lat: 25.12866, lon: 68.54376 },
-//  { code: "41764", name: "Jamshoro", lat: 25.43375, lon: 68.28053 },
- // { code: "41764", name: "Mitiari", lat: 25.59698, lon: 68.44521 },
-  { code: "41743", name: "Dadu", lat: 26.70925, lon: 67.779560 },
-  { code: "41767", name: "MirpurKhas", lat: 25.53159, lon: 68.989320 },
-  { code: "41768", name: "Chhor", lat: 25.51964, lon: 69.7690326 },
-  { code: "41786", name: "Mithi", lat: 24.7469, lon: 69.796030 },
-  { code: "41749", name: "Nawabshah", lat: 26.21781, lon: 68.3919538 },
-//  { code: "41749", name: "Sanghar", lat: 26.04783, lon: 68.94906 },
-//  { code: "41746", name: "NausheroFiroz", lat: 26.84309, lon: 68.12332 },
-  { code: "41724", name: "Sukkur", lat: 27.72229, lon: 68.796940 },
-  { code: "41725", name: "Rohri", lat: 27.68448, lon: 68.890670 },
-  { code: "41726", name: "Khairpur", lat: 27.49389, lon: 68.760970 },
-  { code: "41748", name: "Larkana", lat: 25.54062, lon: 68.191740 },
-  { code: "41715", name: "Jacobabad", lat: 28.26759, lon: 68.4458756 }
+const points=[
+ { code:"41780", name:"Karachi", lat:24.9, lon:67.13 },
+ { code:"41783", name:"Thatta", lat:24.75, lon:67.89 },
+ { code:"41785", name:"Badin", lat:24.67, lon:68.83 },
+ { code:"41764", name:"Hyderabad", lat:25.37, lon:68.36 },
+ { code:"41743", name:"Dadu", lat:26.70, lon:67.77 },
+ { code:"41767", name:"MirpurKhas", lat:25.53, lon:68.98 },
+ { code:"41768", name:"Chhor", lat:25.51, lon:69.76 },
+ { code:"41786", name:"Mithi", lat:24.74, lon:69.79 },
+ { code:"41749", name:"Nawabshah", lat:26.21, lon:68.39 },
+ { code:"41724", name:"Sukkur", lat:27.72, lon:68.79 },
+ { code:"41725", name:"Rohri", lat:27.68, lon:68.89 },
+ { code:"41726", name:"Khairpur", lat:27.49, lon:68.76 },
+ { code:"41748", name:"Larkana", lat:27.56, lon:68.21 },
+ { code:"41715", name:"Jacobabad", lat:28.28, lon:68.44 }
 ];
 
-// --- Utility Functions ---
-function min(arr){ return arr.length ? Math.min(...arr).toFixed(0) : "-"; }
-function max(arr){ return arr.length ? Math.max(...arr).toFixed(0) : "-"; }
-
-function getIndices(timeArray, offsetDays){
-  const start = offsetDays * 24;
-  const end = start + 24;
-  const indices = [];
-  for(let i=start; i<end && i<timeArray.length; i++) indices.push(i);
-  return indices;
+function parseSynop(t){
+ const d={};
+ t.split(/\n/).forEach(l=>{
+  let p=l.trim().split(/\s+/),i=p.indexOf("333");
+  if(i<0)return;
+  let mx="",mn="";
+  for(let v of p.slice(i+1)){
+   if(/^1\d{4}$/.test(v))mx=(parseInt(v.slice(2))/10).toFixed(1);
+   if(/^2\d{4}$/.test(v))mn=(parseInt(v.slice(2))/10).toFixed(1);
+  }
+  d[p[0]]={obs:(mn&&mx)?mn+" / "+mx:(mx||mn)};
+ });
+ return d;
 }
 
-// --- Synop Parsing ---
-function parseSynop(synopText){
-  const lines = synopText.split("\n").map(l=>l.trim()).filter(l=>l);
-  const stationData = {};
-  
-  for(const line of lines){
-    const parts = line.split(/\s+/); 
-    const code = parts[0]; 
-    const idx333 = parts.indexOf("333");
-    
-    if(idx333 === -1) continue;
-    
-    const after333 = parts.slice(idx333+1);
-    let maxTemp=null, minTemp=null, rhVal=null;
-
-    for(const val of after333){
-      // Max Temp (Group 1snTxTxTx)
-      if(/^1\d{4}$/.test(val)){ 
-        let raw = parseInt(val.substring(2));
-        let sign = val.charAt(1) === '1' ? -1 : 1;
-        maxTemp = (sign * (raw / 10)).toFixed(1);
-      } 
-      // Min Temp (Group 2snTnTnTn)
-      else if(/^2\d{4}$/.test(val)){ 
-        let raw = parseInt(val.substring(2));
-        let sign = val.charAt(1) === '1' ? -1 : 1;
-        minTemp = (sign * (raw / 10)).toFixed(1);
-      }
-    }
-    
-    // --- Robust RH Extraction ---
-    const fullLine = parts.join(" "); 
-    // 1. "RH" followed by digits
-    let rhMatch = fullLine.match(/RH\s*[:=\-]?\s*(\d{2,3})/i);
-    // 2. Digits before "%"
-    if (!rhMatch) {
-        rhMatch = fullLine.match(/(\d{2,3})\s*%/);
-    }
-
-    if (rhMatch) {
-        let r = parseInt(rhMatch[1]);
-        if(r <= 100) rhVal = r;
-    }
-
-    if(!stationData[code]) stationData[code]={};
-    if(maxTemp!==null) stationData[code].maxTemp = maxTemp;
-    if(minTemp!==null) stationData[code].minTemp = minTemp;
-    if(rhVal!==null) stationData[code].rh = rhVal;
+function parse0600(t){
+ const d={};
+ t.split(/\n/).forEach(l=>{
+  let p=l.trim().split(/\s+/);
+  for(let v of p.slice(3)){
+   if(/^1\d{4}$/.test(v)){d[p[0]]=(parseInt(v.slice(2))/10).toFixed(1);break;}
   }
-  return stationData;
+ });
+ return d;
 }
 
-// --- API Fetch ---
-async function fetchData(lat, lon){
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m&forecast_days=3&timezone=UTC`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("API Error");
-    return await res.json();
-  } catch (e) {
-    console.error(e);
-    return null;
+// 0300Z SYNOP: minimum temperature is the 2xxxxx group after 333.
+// RH is taken from the FINAL item in each SYNOP report line.
+// Supports examples such as RH52%=, RH87%=, and 70% .= (RH digits are read before %).
+function parse0300(t){
+ const d={};
+ t.split(/\n/).forEach(l=>{
+  let p=l.trim().split(/\s+/);
+  if(!p[0])return;
+  let i=p.indexOf("333"),min="",rh="";
+  if(i>=0){
+   for(let v of p.slice(i+1)){
+    if(/^2\d{4}$/.test(v)) min=(parseInt(v.slice(2),10)/10).toFixed(1);
+   }
   }
+  // Read RH only from the report's last whitespace-separated item.
+  let last=p[p.length-1];
+  // Examples: RH52%=, RH87%=, 70%=, 65%
+  let match=last.match(/^(?:RH)?(\d{1,3})%?=?$/i);
+  if(match){
+   let value=parseInt(match[1],10);
+   if(value>=0 && value<=100) rh=String(value);
+  }
+  d[p[0]]={min,rh};
+ });
+ return d;
 }
 
-// --- Build Table Row ---
-function buildRow(point, data, synop){
-  let obsTemp = "-";
-  let obsRH = "-";
+function dir(deg){
+ const a=["N","NE","E","SE","S","SW","W","NW"];
+ return a[Math.round((((deg%360)+360)%360)/45)%8]+" ("+Math.round(deg)+"°)";
+}
+function mode(a){
+ const m={};let b=a[0],c=0;
+ a.forEach(x=>{m[x]=(m[x]||0)+1;if(m[x]>c){c=m[x];b=x}});
+ return b;
+}
+const wx={0:"Clear",1:"Mainly Clear",2:"Partly Cloudy",3:"Cloudy",45:"Fog",48:"Fog",51:"Drizzle",53:"Drizzle",55:"Drizzle",61:"Rain",63:"Rain",65:"Heavy Rain",80:"Showers",81:"Showers",82:"Heavy Showers",95:"Thunderstorm",96:"TS+Hail",99:"Severe TS"};
 
-  // 1. Observed Data
-  if(synop[point.code]){
-    const s = synop[point.code];
-    if(s.minTemp && s.maxTemp) obsTemp = `${s.minTemp} / ${s.maxTemp}`;
-    else if (s.maxTemp) obsTemp = s.maxTemp;
-    else if (s.minTemp) obsTemp = s.minTemp;
-    
-    if(s.rh) obsRH = s.rh;
-  }
-
-  // 2. Forecast Data
-  let fctTemps = ["-", "-", "-"];
-  let fctRHs = ["-", "-", "-"];
-
-  if(data && data.hourly){
-    const t = data.hourly.temperature_2m;
-    const r = data.hourly.relative_humidity_2m;
-    const time = data.hourly.time;
-
-    for(let d=0; d<3; d++){
-      const idx = getIndices(time, d);
-      if(idx.length > 0){
-        // Format: Min - Max
-        fctTemps[d] = `${min(idx.map(i=>t[i]))} - ${max(idx.map(i=>t[i]))}`;
-        fctRHs[d] = `${min(idx.map(i=>r[i]))} - ${max(idx.map(i=>r[i]))}`;
-      }
-    }
-  }
-
-  return `
-    <tr>
-      <td>${point.name}</td>
-      <td>${point.code}</td>
-      <td class="col-obs">${obsTemp}</td>
-      <td>${fctTemps[0]}</td>
-      <td>${fctTemps[1]}</td>
-      <td>${fctTemps[2]}</td>
-      <td class="col-obs">${obsRH}</td>
-      <td>${fctRHs[0]}</td>
-      <td>${fctRHs[1]}</td>
-      <td>${fctRHs[2]}</td>
-    </tr>
-  `;
+async function fetchData(lat,lon){
+ let u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code&forecast_days=3&timezone=UTC`;
+ return (await fetch(u)).json();
+}
+function calc(d,s){
+ let t=d.temperature_2m.slice(s,s+24),rh=d.relative_humidity_2m.slice(s,s+24),ws=d.wind_speed_10m.slice(s,s+24),wd=d.wind_direction_10m.slice(s,s+24),wc=d.weather_code.slice(s,s+24);
+ return{
+  tmax:Math.max(...t).toFixed(0),tmin:Math.min(...t).toFixed(0),
+  dir:dir(wd.reduce((a,b)=>a+b,0)/wd.length),
+  spd:Math.round(ws.reduce((a,b)=>a+b,0)/ws.length)+" ("+Math.round(Math.max(...ws))+")",
+  rh:Math.min(...rh).toFixed(0)+"-"+Math.max(...rh).toFixed(0),
+  fc:wx[mode(wc)]||("Code "+mode(wc))
+ };
 }
 
-// --- Main Process ---
-async function processSynopAndLoad(){
-  const btn = document.getElementById("loadBtn");
-  const msg = document.getElementById("statusMsg");
-  const tbody = document.getElementById("tableBody");
-  
-  btn.disabled = true;
-  msg.textContent = "Processing...";
-  tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">Fetching Data...</td></tr>`;
-
-  const synopText = document.getElementById("synopBox").value;
-  const synopData = parseSynop(synopText);
-
-  // Parallel Fetch
-  const fetchPromises = points.map(async (point) => {
-    const data = await fetchData(point.lat, point.lon);
-    return { point, data };
-  });
-
-  const results = await Promise.all(fetchPromises);
-
-  // Render Rows
-  tbody.innerHTML = "";
-  results.forEach(res => {
-    tbody.innerHTML += buildRow(res.point, res.data, synopData);
-  });
-
-  msg.textContent = `Completed! Loaded ${results.length} stations.`;
-  btn.disabled = false;
+async function loadTable(){
+ let syn=parseSynop(document.getElementById("synopBox").value),
+     s6=parse0600(document.getElementById("synop0600Box").value),
+     s3=parse0300(document.getElementById("synop0300Box").value),
+     tb=document.getElementById("tb");
+ tb.innerHTML="";
+ for(const p of points){
+  try{
+   let j=await fetchData(p.lat,p.lon),d=j.hourly,a=[0,24,48].map(x=>calc(d,x));
+   tb.innerHTML+=`<tr><td>${p.name}</td><td>${p.code}</td><td class="obs">${syn[p.code]?.obs||"-"}</td><td>${s6[p.code]||"-"}</td>
+   <td class="tmax">${a[0].tmax}</td><td class="tmax">${a[1].tmax}</td><td class="tmax">${a[2].tmax}</td><td class="tmin">${s3[p.code]?.min||"-"}</td>
+   <td class="tmin">${a[0].tmin}</td><td class="tmin">${a[1].tmin}</td><td>${a[2].tmin}</td>
+   <td>${a[0].dir}</td><td>${a[1].dir}</td><td>${a[2].dir}</td>
+   <td>${a[0].spd}</td><td>${a[1].spd}</td><td>${a[2].spd}</td>
+   <td class="rhobs">${s3[p.code]?.rh||"-"}</td><td class="rhfc">${a[0].rh}</td><td class="rhfc">${a[1].rh}</td><td>${a[2].rh}</td>
+   <td>${a[0].fc}</td><td>${a[1].fc}</td><td>${a[2].fc}</td></tr>`;
+  }catch(e){tb.innerHTML+=`<tr><td>${p.name}</td><td colspan="23">Error loading forecast data</td></tr>`;}
+ }
 }
 </script>
-
 </body>
 </html>
